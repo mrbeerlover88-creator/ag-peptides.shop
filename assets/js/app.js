@@ -353,14 +353,6 @@ function bindAdmin(app) {
 document.addEventListener('click', e => {
   const t = e.target;
 
-  // в однофайловой сборке PDF не вшиты: показываем страницу отчёта в лайтбоксе
-  const cert = t.closest('.cert');
-  if (cert && typeof COA_PAGES !== 'undefined' && COA_PAGES[cert.dataset.cert]) {
-    e.preventDefault();
-    lightbox(COA_PAGES[cert.dataset.cert], 'Сертификат анализа ' + cert.dataset.cert);
-    return;
-  }
-
   const zoom = t.closest('.pdp-media img.art');
   if (zoom) { e.preventDefault(); lightbox(zoom.src, zoom.alt); return; }
 

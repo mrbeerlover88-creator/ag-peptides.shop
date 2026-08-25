@@ -30,9 +30,9 @@ def main():
         pairs.append('"%s":"data:image/jpeg;base64,%s"' % (f.name, b64))
     img_js = 'const IMG_DATA = {\n' + ',\n'.join(pairs) + '\n};'
 
-    # превью карточек сертификатов + читаемые страницы отчётов.
+    # превью карточек сертификатов + страницы отчётов для автономного просмотра.
     # Сами PDF (21 МБ) не вшиваем — файл перестал бы пролезать в письмо;
-    # вместо PDF по клику открывается страница отчёта в лайтбоксе.
+    # карточки на сайте всё равно ведут на отдельные PDF в assets/coa/.
     def datauri_map(folder, const):
         files = sorted((IMG.parent / 'coa' / folder).glob('*.jpg'))
         items = ['"%s":"data:image/jpeg;base64,%s"'
