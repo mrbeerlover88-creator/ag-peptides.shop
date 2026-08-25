@@ -1,0 +1,166 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CLIENT
+  ADMIN
+}
+
+enum ProductForm {
+  PEN
+  VIAL
+  WATER
+}
+
+enum OrderStatus {
+  NEW
+  PAID
+  PACKED
+  SHIPPED
+  DONE
+  CANCELED
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  phone        String?
+  role         UserRole  @default(CLIENT)
+  bonus        Int       @default(0)
+  addresses    Address[]
+  orders       Order[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Address {
+  id        String   @id @default(cuid())
+  userId    String
+  label     String?
+  value     String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Category {
+  id       String    @id
+  name     String
+  icon     String?
+  products Product[]
+}
+
+model Product {
+  id          String       @id
+  categoryId  String
+  name        String
+  dose        String
+  form        ProductForm
+  badge       String?
+  price       Int
+  marketPrice Int?
+  originUsd   Int?
+  tagline     String
+  about       String
+  specs       Json
+  stock       Int          @default(0)
+  rating      Float?
+  reviews     Int          @default(0)
+  imageKey    String?
+  deleted     Boolean      @default(false)
+  category    Category     @relation(fields: [categoryId], references: [id])
+  coa         Certificate?
+  orderItems  OrderItem[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Certificate {
+  id        String   @id @default(cuid())
+  productId String   @unique
+  batch     String
+  purity    String?
+  content   String?
+  testedAt  DateTime?
+  method    String?
+  pdfUrl    String?
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model PromoCode {
+  code      String   @id
+  type      String
+  value     Int
+  minTotal  Int?
+  active    Boolean  @default(true)
+  desc      String
+  createdAt DateTime @default(now())
+}
+
+model ShippingMethod {
+  id            String  @id
+  name          String
+  days          String
+  price         Int
+  freeFromTotal Int?
+  active        Boolean @default(true)
+  orders        Order[]
+}
+
+model PaymentMethod {
+  id     String  @id
+  name   String
+  desc   String
+  badge  String?
+  active Boolean @default(true)
+  orders Order[]
+}
+
+model Order {
+  id               String         @id
+  userId           String?
+  contactName      String
+  contactEmail     String
+  contactPhone     String
+  contactTelegram  String?
+  shippingMethodId String
+  paymentMethodId  String
+  address          String?
+  comment          String?
+  promoCode        String?
+  subtotal         Int
+  discount         Int            @default(0)
+  shippingCost     Int            @default(0)
+  total            Int
+  cashback         Int            @default(0)
+  status           OrderStatus    @default(NEW)
+  trackingCode     String?
+  user             User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  shippingMethod   ShippingMethod @relation(fields: [shippingMethodId], references: [id])
+  paymentMethod    PaymentMethod  @relation(fields: [paymentMethodId], references: [id])
+  items            OrderItem[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  productId String
+  name      String
+  dose      String
+  form      String
+  price     Int
+  quantity  Int
+  total     Int
+  coaBatch  String?
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
+}
